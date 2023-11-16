@@ -1,9 +1,16 @@
 import { useState } from "react";
-import { useGetTodosQuery } from "./todoSlice";
+import {
+  useAddTodoMutation,
+  useDeleteTodoMutation,
+  useGetTodosQuery,
+  useUpdateTodoMutation,
+} from "./todoSlice";
 
 const TodoList = () => {
   const [newTodo, setNewTodo] = useState("");
-
+  const [addTodo] = useAddTodoMutation();
+  const [updateTodo] = useUpdateTodoMutation();
+  const [deleteTodo] = useDeleteTodoMutation();
   const {
     data: todos,
     isLoading,
@@ -13,7 +20,9 @@ const TodoList = () => {
   } = useGetTodosQuery();
 
   const handleSubmit = (e) => {
+    console.log("here");
     e.preventDefault();
+    addTodo({ userId: 1, title: newTodo, completed: false });
     setNewTodo("");
   };
   return (
@@ -22,7 +31,6 @@ const TodoList = () => {
         <div className="formfield">
           <label htmlFor="new-todo">Enter new todo items</label>
           <input
-            type="checkbox"
             name="new-todo"
             id="new-todo"
             onChange={(e) => setNewTodo(e.target.value)}
@@ -34,7 +42,28 @@ const TodoList = () => {
       </form>
       <div className="table-layout">
         {isLoading && <p>Content is Loading ...</p>}
-        {isSuccess && JSON.stringify(todos)}
+        {isSuccess &&
+          todos.map((todo) => (
+            <article className="todos" key={todo.id}>
+              <div className="todo">
+                <input
+                  type="checkbox"
+                  checked={todo.completed}
+                  id={todo.id}
+                  onChange={() =>
+                    updateTodo({ ...todo, completed: !todo.completed })
+                  }
+                />
+                <label htmlFor={todo.id}>{todo.title}</label>
+              </div>
+              <button
+                className="trash"
+                onClick={() => deleteTodo({ id: todo.id })}
+              >
+                X
+              </button>
+            </article>
+          ))}
         {isError && error}
       </div>
     </section>
